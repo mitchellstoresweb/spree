@@ -37,6 +37,7 @@ jobs:
       DB_PASSWORD: postgres
       PGUSER: postgres
       PGPASSWORD: postgres
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.project }}/Gemfile
 
     steps:
     - name: Checkout code
@@ -48,7 +49,6 @@ jobs:
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         bundler-cache: true
-        working-directory: ${{ matrix.project }}
 
     - name: Install dependencies
       run: |
