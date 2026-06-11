@@ -39,10 +39,9 @@ module Spree
     # virtual attributes for use with AJAX completion stuff
     delegate :name, :presentation, to: :property, prefix: true, allow_nil: true
 
+    # MITCHELLS_OVERRIDE: removed the Spree 5.0 deprecation warning — this fork
+    # stays on 4.x and the admin product form submits property_name.
     def property_name=(name)
-      Spree::Deprecation.warn(<<-DEPRECATION, caller)
-        `ProductProperty#property_name=` is deprecated and will be removed in Spree 5.0.
-      DEPRECATION
       if name.present?
         self.property = if Property.where(name: name).exists?
                           Property.where(name: name).first
