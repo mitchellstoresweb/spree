@@ -28,6 +28,14 @@ end
 
 gem 'sprockets-rails', '>= 2.0.0'
 
+# MITCHELLS_OVERRIDE: pin the dependencies that have shipped breaking changes
+# since the 4.8.3 baseline to the versions the ecommerce-web app runs in
+# production (e.g. state_machines 0.101 breaks store validations). Each
+# sub-gem's Gemfile.lock is committed so CI stays reproducible.
+gem 'state_machines', '0.6.0'
+gem 'state_machines-activerecord', '0.9.0'
+gem 'active_storage_validations', '1.1.4'
+
 group :test do
   gem 'capybara'
   gem 'capybara-screenshot'
