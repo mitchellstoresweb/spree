@@ -296,14 +296,12 @@ describe 'Product scopes', type: :model do
     end
 
     it 'orders products by ascending taxons minimum position' do
-      expect(ordered_products).to eq(
-        [
-          product_2, product_5, # position: 1
-          product_4,            # position: 2
-          product_6, product_3, # position: 3
-          product_1             # position: 4
-        ]
-      )
+      # MITCHELLS_OVERRIDE: the scope defines no order within equal positions, so
+      # assert the tied groups as sets instead of one database-dependent sequence
+      expect(ordered_products[0..1]).to match_array([product_2, product_5]) # position: 1
+      expect(ordered_products[2]).to eq(product_4)                          # position: 2
+      expect(ordered_products[3..4]).to match_array([product_6, product_3]) # position: 3
+      expect(ordered_products[5]).to eq(product_1)                          # position: 4
     end
   end
 
