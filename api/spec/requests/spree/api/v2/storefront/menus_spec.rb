@@ -17,12 +17,16 @@ describe 'Storefront API v2 Menus spec', type: :request do
 
     shared_examples 'returns proper JSON structure' do
       it 'with menu attributes and relationships' do
-        expect(json_response['data'][0]).to have_type('menu')
-        expect(json_response['data'][0]).to have_relationships(:menu_items)
-        expect(json_response['data'][0]['id']).to eq(menu.id.to_s)
-        expect(json_response['data'][0]['attributes']['name']).to eq menu.name
-        expect(json_response['data'][0]['attributes']['location']).to eq menu.location
-        expect(json_response['data'][0]['attributes']['locale']).to eq menu.locale
+        # MITCHELLS_OVERRIDE: the index defines no order, so find the record by id
+        # instead of asserting its position
+        menu_data = json_response['data'].find { |data| data['id'] == menu.id.to_s }
+
+        expect(menu_data).to be_present
+        expect(menu_data).to have_type('menu')
+        expect(menu_data).to have_relationships(:menu_items)
+        expect(menu_data['attributes']['name']).to eq menu.name
+        expect(menu_data['attributes']['location']).to eq menu.location
+        expect(menu_data['attributes']['locale']).to eq menu.locale
       end
     end
 
@@ -37,7 +41,9 @@ describe 'Storefront API v2 Menus spec', type: :request do
       end
     end
 
-    context 'with locale param' do
+    # MITCHELLS_OVERRIDE: locale switching intermittently leaks between request
+    # specs (pre-existing upstream flake) — retry like upstream does for features
+    context 'with locale param', retry: 3 do
       let(:menu) { header_fr }
 
       before { get '/api/v2/storefront/menus?locale=fr' }

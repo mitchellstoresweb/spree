@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  gems:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [core, api, emails, sample]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DB: postgres
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.project }}/Gemfile
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
+      with:
+        bundler-cache: true
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvips42
+
+    - name: Setup dummy app and database
+      working-directory: ${{ matrix.project }}
+      run: |
+        bundle exec rake test_app
+
+    - name: Run specs
+      working-directory: ${{ matrix.project }}
+      run: |
+        bundle exec rspec --order random --profile 10
+
+    - name: Upload test failures
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: test-failures-${{ matrix.project }}
+        path: |
+          ${{ matrix.project }}/spec/dummy/log/test.log
+        if-no-files-found: ignore
